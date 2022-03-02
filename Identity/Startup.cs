@@ -1,4 +1,3 @@
-using Identity.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -11,8 +10,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Identity.Data;
+using Identity.Data.Account;
+using Identity.Services;
+using Identity.Settings;
 
-namespace WebApp_UnderTheHood
+namespace Identity
 {
     public class Startup
     {
@@ -25,15 +28,16 @@ namespace WebApp_UnderTheHood
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
+        
         {
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("Default"));
             });
 
-            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            services.AddIdentity<User, IdentityRole>(options =>
             {
-                options.Password.RequiredLength = 8;
+                options.Password.RequiredLength = 3;
                 options.Password.RequireLowercase = true;
                 options.Password.RequireUppercase = true;
 
@@ -44,14 +48,18 @@ namespace WebApp_UnderTheHood
                 options.SignIn.RequireConfirmedEmail = true;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
-
+            .AddDefaultTokenProviders();        
 
             services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Account/Login";
                 options.AccessDeniedPath = "/Account/AccessDenied";
             });
+
+            services.Configure<SmtpSetting>(Configuration.GetSection("SMTP"));
+
+            services.AddSingleton<IEmailService, EmailService>();
+
             services.AddRazorPages();
         }
 

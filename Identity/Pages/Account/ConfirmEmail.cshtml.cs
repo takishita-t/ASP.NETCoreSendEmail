@@ -1,3 +1,4 @@
+using Identity.Data.Account;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -6,11 +7,12 @@ namespace Identity.Pages.Account
 {
     public class ConfirmEmailModel : PageModel
     {
-        private readonly UserManager<IdentityUser> userManager;
+        private readonly UserManager<User> userManager;
 
         [BindProperty]
         public string Message { get; set; }
-        public ConfirmEmailModel(UserManager<IdentityUser> userManager)
+
+        public ConfirmEmailModel(UserManager<User> userManager)
         {
             this.userManager = userManager;
         }
@@ -18,7 +20,6 @@ namespace Identity.Pages.Account
         public async Task<IActionResult> OnGetAsync(string userId, string token)
         {
             var user = await this.userManager.FindByIdAsync(userId);
-
             if (user != null)
             {
                 var result = await this.userManager.ConfirmEmailAsync(user, token);
@@ -28,7 +29,8 @@ namespace Identity.Pages.Account
                     return Page();
                 }
             }
-            this.Message = "Failed to Validate email";
+
+            this.Message = "Failed to validate email.";
             return Page();
         }
     }
