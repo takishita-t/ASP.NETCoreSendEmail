@@ -59,7 +59,6 @@ namespace Identity
             services.Configure<SmtpSetting>(Configuration.GetSection("SMTP"));
 
             services.AddSingleton<IEmailService, EmailService>();
-
             services.AddRazorPages();
         }
 

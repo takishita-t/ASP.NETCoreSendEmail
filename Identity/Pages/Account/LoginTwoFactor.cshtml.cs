@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Identity.Data.Account;
 using Identity.Services;
 using System.ComponentModel.DataAnnotations;
+using MimeKit;
+using MailKit.Security;
+
 namespace Identity.Pages.Account
 {
     public class LoginTwoFactorModel : PageModel
@@ -37,10 +40,23 @@ namespace Identity.Pages.Account
             var securityCode = await userManager.GenerateTwoFactorTokenAsync(user, "Email");
 
             // Send to the user
-            await emailService.SendAsync("0209takumi.t@gmail.com",
-                email,
-                "My Web App's OTP",
-                $"Please use this code as the OTP: {securityCode}");
+            var emailMessage = new MimeMessage();
+
+            emailMessage.From.Add(new MailboxAddress("", "test@example.com"));
+
+            emailMessage.To.Add(new MailboxAddress("test@test.com", "test@test.com"));
+
+            emailMessage.Subject = "My Web App's OTP";
+
+            emailMessage.Body = new TextPart("plain") { Text = $"Please use this code as the OTP: {securityCode}" };
+
+            using (var client = new MailKit.Net.Smtp.SmtpClient())
+            {
+                await client.ConnectAsync("localhost", 1025, SecureSocketOptions.Auto);
+                //await client.AuthenticateAsync(_sendMailParams.User, _sendMailParams.Password);
+                await client.SendAsync(emailMessage);
+                await client.DisconnectAsync(true);
+            }
         }
 
         public async Task<IActionResult> OnPostAsync()

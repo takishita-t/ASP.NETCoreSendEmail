@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 using Identity.Data.Account;
 using System.Security.Claims;
+using MimeKit;
+using MailKit.Security;
 
 namespace Identity.Pages.Account
 {
@@ -39,7 +41,8 @@ namespace Identity.Pages.Account
             var user = new User
             {
                 Email = RegisterViewModel.Email,
-                UserName = RegisterViewModel.Email
+                UserName = RegisterViewModel.Email,
+                TwoFactorEnabled = true
             };
 
             var claimDepartment = new Claim("Department", RegisterViewModel.Department);
@@ -55,11 +58,24 @@ namespace Identity.Pages.Account
                 var confirmationLink = Url.PageLink(pageName: "/Account/ConfirmEmail",
                     values: new { userId = user.Id, token = confirmationToken });
 
-                await emailService.SendAsync(
-                    "0209takumi.t@gmail.com",
-                     user.Email,
-                    "Please confirm your email",
-                    $"Please click on this link to confirm your email address: {confirmationLink}");
+                //send mail
+                var emailMessage = new MimeMessage();
+
+                emailMessage.From.Add(new MailboxAddress("", "test@example.com"));
+
+                emailMessage.To.Add(new MailboxAddress("test@test.com", "test@test.com"));
+
+                emailMessage.Subject = "Confirm your email";
+
+                emailMessage.Body = new TextPart("plain") { Text = $"Confirm your email {confirmationLink}" };
+
+                using (var client = new MailKit.Net.Smtp.SmtpClient())
+                {
+                    await client.ConnectAsync("localhost", 1025, SecureSocketOptions.Auto);
+                    //await client.AuthenticateAsync(_sendMailParams.User, _sendMailParams.Password);
+                    await client.SendAsync(emailMessage);
+                    await client.DisconnectAsync(true);
+                }
 
                 return RedirectToPage("/Account/Login");
             }

@@ -15,7 +15,7 @@ namespace Identity.Services
             this.smtpSetting = smtpSetting;
         }
 
-        public async Task SendAsync(string from, string to, string subject, string body)
+        public async Task SenderAsync(string from, string to, string subject, string body)
         {
             var message = new MailMessage(from,
                     to,

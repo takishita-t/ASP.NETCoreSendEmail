@@ -47,7 +47,6 @@ namespace Identity.Pages.Account
                             RememberMe = this.Credential.RememberMe
                         });
                 }
-
                 if (result.IsLockedOut){
                     ModelState.AddModelError("Login", "You are locked out.");
                 }
